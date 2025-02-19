@@ -7,162 +7,136 @@ using namespace std;
 
 int getopt(char c);
 
-class question
-{
+class Question {
 public:
     string q;
     string opt[4];
-    char inputans;
+    char inputAns;
     char ans;
-    //int pts;
-    /*question()
-    {
-        q = "";
-        for (int i = 0; i < 4; i++)
-        {
-            opt[i] = "";
-        }
-    }*/
 };
 
-class quiz
-{
+class Quiz {
 public:
-    int n,iMarks,pts;
-    vector<question> que;
-    vector<question> v;
-    quiz()
-    {
-    	iMarks = 0;
-	}
-    void getque()
-    {
-        question a;
-        cout << "Enter number of Question: ";
+    int n, totalMarks, pts;
+    vector<Question> que;
+    vector<Question> v;
+    
+    Quiz() {
+        totalMarks = 0;
+    }
+
+    void getQue() {
+        Question a;
+        cout << "Enter number of questions: ";
         cin >> n;
-        cout<<"Enter marks for each question : ";
-        cin>>pts;
-        for (int i = 0; i < n; i++)
-        {
-            cout << "Question " << i + 1 << " : ";
-            cin.ignore(); 
+        cout << "Enter marks for each question: ";
+        cin >> pts;
+        cin.ignore(); 
+
+        for (int i = 0; i < n; i++) {
+            cout << "Question " << i + 1 << ": ";
             getline(cin, a.q);
-            cout << "Options :" << endl;
-            for (int j = 0; j < 4; j++)
-            {
+            cout << "Options:\n";
+            for (int j = 0; j < 4; j++) {
                 getline(cin, a.opt[j]);
             }
-            cout << "Correct Option : ";
+            cout << "Correct Option (a/b/c/d): ";
             cin >> a.ans;
-            //cout << "Points : ";
-            //cin >> pts;
-            cout << endl;
+            cin.ignore();
             que.push_back(a);
         }
-        cout << endl;
-        ofstream fileout;
-        fileout.open("quiz.txt");
-        fileout << n << endl;
-        for (int i = 0; i < n; i++)
-        {
-            fileout << "Question " << i + 1 << " : ";
+
+        ofstream fileout("quiz.txt");
+        fileout << n << " " << pts << endl;
+        for (int i = 0; i < n; i++) {
             fileout << que[i].q << endl;
-            for (int j = 0; j < 4; j++)
-            {
+            for (int j = 0; j < 4; j++) {
                 fileout << que[i].opt[j] << endl;
             }
             fileout << que[i].ans << endl;
-            fileout << pts << endl;
-            cout << endl;
         }
         fileout.close();
+        cout << "Quiz saved successfully!\n";
     }
 
-    void startquiz()
-    {
-    	question a;
-        ifstream filein;
-        filein.open("quiz.txt");
+    void startQuiz() {
+        Question a;
+        ifstream filein("quiz.txt");
+
+        if (!filein) {
+            cout << "No quiz found. Please create one first.\n";
+            return;
+        }
+
         int p;
-        filein >> p;
+        filein >> p >> pts;
         filein.ignore();
-        for (int j = 0; j < p; j++)
-        {
+
+        for (int j = 0; j < p; j++) {
             getline(filein, a.q);
-            cout << a.q << endl;
-            for (int i = 0; i < 4; i++)
-            {
+            cout << "\n" << a.q << endl;
+            for (int i = 0; i < 4; i++) {
                 getline(filein, a.opt[i]);
             }
-            cout << "a) " << a.opt[0] << "		" << "b) " << a.opt[1] << endl << "c) " << a.opt[2] << "		" << "d) " << a.opt[3] << endl;
+            cout << "a) " << a.opt[0] << "\tb) " << a.opt[1] << "\n";
+            cout << "c) " << a.opt[2] << "\td) " << a.opt[3] << "\n";
+
             filein >> a.ans;
             filein.ignore();
-            cout << "Enter correct Option : ";
-            cin >> a.inputans;
-            filein >> pts;
-            filein.ignore();
-            if (a.inputans == a.ans)
-            {
-                iMarks = iMarks + pts;
+
+            cout << "Enter your answer (a/b/c/d): ";
+            cin >> a.inputAns;
+            while (a.inputAns < 'a' || a.inputAns > 'd') {
+                cout << "Invalid input! Please enter a, b, c, or d: ";
+                cin >> a.inputAns;
+            }
+
+            if (a.inputAns == a.ans) {
+                totalMarks += pts;
             }
             v.push_back(a);
         }
         filein.close();
     }
 
-    void display()
-    {
-        for (int i = 0; i < v.size(); i++)
-        {
-            cout<< v[i].q<<endl;
-            cout << "a) " << v[i].opt[0] << "       " << "b) " << v[i].opt[1] << endl << "c) " << v[i].opt[2] << "       " << "d) " << v[i].opt[3] << endl;
-            cout << "Correct Answer : " << v[i].ans << ") " << v[i].opt[getopt(v[i].ans)] << endl;
-            cout << "Your Answer : " << v[i].inputans << ") " << v[i].opt[getopt(v[i].inputans)] << endl;
+    void displayResults() {
+        cout << "\n--- Quiz Results ---\n";
+        for (const auto& q : v) {
+            cout << q.q << endl;
+            cout << "Correct Answer: " << q.ans << ") " << q.opt[getopt(q.ans)] << endl;
+            cout << "Your Answer: " << q.inputAns << ") " << q.opt[getopt(q.inputAns)] << endl;
         }
-        cout << "TOTAL SCORE : " << iMarks << endl;
+        cout << "TOTAL SCORE: " << totalMarks << " / " << (v.size() * pts) << "\n";
     }
 };
 
-int getopt(char c)
-{
-    if (c == 'a')
-        return 0;
-    if (c == 'b')
-        return 1;
-    if (c == 'c')
-        return 2;
-    if (c == 'd')
-        return 3;
-    return -1;
+int getopt(char c) {
+    return (c >= 'a' && c <= 'd') ? c - 'a' : -1;
 }
 
-int main()
-{
-    quiz z;
+int main() {
+    Quiz quiz;
     int ch;
     char garbage;
-    cout << "Enter the Command." << endl
-         << "1) Make Quiz." << endl
-         << "2) Start Quiz." << endl
-         << "3) Exit." << endl;
-    cin >> ch;
-    switch (ch)
-    {
-    case 1:
-        z.getque();
-        break;
-    case 2:
-        z.startquiz();
-        cout<<"PRESS any key to view score.   ";
-        cin>>garbage;
-        cout<<endl<<endl;
-    	z.display();
-        break;
-    case 3:
-        return 0;
-    default:
-        cout << "Invalid Input." << endl;
-        break;
+
+    while (true) {
+        cout << "\n1) Make Quiz\n2) Start Quiz\n3) Exit\nEnter choice: ";
+        cin >> ch;
+
+        switch (ch) {
+            case 1:
+                quiz.getQue();
+                break;
+            case 2:
+                quiz.startQuiz();
+                cout << "Press any key to view score: ";
+                cin >> garbage;
+                quiz.displayResults();
+                break;
+            case 3:
+                return 0;
+            default:
+                cout << "Invalid choice, try again.\n";
+        }
     }
-    return 0;
 }
